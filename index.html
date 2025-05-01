@@ -1,41 +1,42 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-   <link rel="manifest" href="manifest.json">
   <meta charset="UTF-8" />
-    <link rel="website icon" type="png" href="loan.png">
-    <link rel="icon" type="png" href="loan.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="loan.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Хисобкунак</title>
   <style>
+ 
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=M+PLUS+Rounded+1c&family=Manrope:wght@200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Satisfy&display=swap');
     body {
       background: #111;
       color: #fff;
-      font-family: sans-serif;
+      font-family: "DM Sans", sans-serif;
       padding: 2px;
       text-align: left;
+      width: 90%;
     }
-
+  *{
+      font-family: "DM Sans", sans-serif;
+  }
     .container {
       max-width: 550px;
-      margin: ;
+      margin: auto;
       background: #222;
       padding: 20px;
       border-radius: 10px;
     }
-
     .balance {
       font-size: 18px;
       margin-bottom: 10px;
       color: #ff4d4d;
     }
-
     .tabs {
       display: flex;
       gap: 10px;
       margin: 15px 0;
     }
-
     .tabs button {
       flex: 1;
       padding: 10px;
@@ -45,62 +46,75 @@
       color: white;
       cursor: pointer;
     }
-
     .tabs .active {
       background: #25c710;
     }
-
     input, button {
-      width: 90%;
+      width: 95%;
       padding: 10px;
       margin-bottom: 10px;
       border: none;
       border-radius: 20px;
     }
-input{
-  height: 20px;
-}
-  
+    input {
+      height: 20px;
+    }
     button#addBtn {
       background: #2ecc71;
       font-weight: bold;
       cursor: pointer;
     }
-  #addBtn {
-    width: 95%;
-      background: #2ecc71;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
     ul#history {
       list-style: none;
       padding: 0;
     }
-
     ul#history li {
       padding: 8px;
       margin: 5px 0;
       background: #333;
       border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-
     .positive {
       color: #2ecc71;
     }
-
     .negative {
       color: #e74c3c;
     }
-  #debtBtn.active{
-    background-color: red;
-  }
+    #debtBtn.active {
+      background-color: red;
+    }
+    .op-controls button {
+      background: #777;
+      color: white;
+      padding: 3px 7px;
+      margin-left: 5px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+    select, #clientSelect {
+      padding: 0;
+      width: 100%;
+      height: 40px;
+      margin-bottom: 10px;
+      border-radius: 20px;
+    }
+    .addBtn {
+      background-color: #0286fa;
+      color: white;
+    }
   </style>
 </head>
 <body>
+  <h2 style="text-align: center;">Хисобкунак</h2>
   <div class="container">
-    <input type="text" id="nameInput" placeholder="Имя (например: Бижутерия)" />
-    <p class="balance" id="balance">Баланс: 0 сомонӣ</p>
+    <select id="clientSelect"></select>
+    <input type="text" id="newClient" placeholder="Добавить нового клиента" />
+    <button class="addBtn" onclick="addClient()">Добавить клиента</button>
+    <p class="balance" id="balance">Тавозун: 0 сомонӣ</p>
     <p id="regDate">Дата регистрации: </p>
 
     <div class="tabs">
@@ -109,68 +123,76 @@ input{
     </div>
 
     <input type="number" id="amount" placeholder="Сумма €" />
+    <input type="text" id="comment" placeholder="Комментарий" />
     <button id="addBtn">Сабт кардан</button>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+      <button id="clearBalanceBtn" style="background:#e67e22; flex: 1;">Очистить баланс</button>
+      <button id="clearHistoryBtn" style="background:#e74c3c; flex: 1;">Очистить историю</button>
+      <button id="exportBtn" style="background:#3498db; flex: 1;">Экспорт</button>
+    </div>
 
     <h3>Таърих:</h3>
     <ul id="history"></ul>
   </div>
-
+  <p>©2025.Хисобкунак</p>
+  <p>Разработчик: Komron Sharipov</p>
+  <p>Тел: 971000215</p>
   <script>
     let isDebt = true;
+    let operations = JSON.parse(localStorage.getItem("operations")) || [];
+    let clients = JSON.parse(localStorage.getItem("clients")) || ["Бижутерия"];
+    let currentClient = localStorage.getItem("currentClient") || clients[0];
+
     const debtBtn = document.getElementById("debtBtn");
     const loanBtn = document.getElementById("loanBtn");
     const amountInput = document.getElementById("amount");
     const addBtn = document.getElementById("addBtn");
     const balanceEl = document.getElementById("balance");
     const historyEl = document.getElementById("history");
-    const nameInput = document.getElementById("nameInput");
     const regDateEl = document.getElementById("regDate");
+    const clientSelect = document.getElementById("clientSelect");
+    const newClientInput = document.getElementById("newClient");
+    const commentInput = document.getElementById("comment");
 
-    let operations = JSON.parse(localStorage.getItem("operations")) || [];
-    let name = localStorage.getItem("clientName") || "Бижутерия";
-    let regDate = localStorage.getItem("regDate");
-
-    if (!regDate) {
+    if (!localStorage.getItem("regDate")) {
       const now = new Date();
-      regDate = now.toLocaleDateString("ru-RU") + " " + now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-      localStorage.setItem("regDate", regDate);
+      localStorage.setItem("regDate", now.toLocaleString("ru-RU"));
     }
+    regDateEl.textContent = `Рӯзи бақайдгирӣ: ${localStorage.getItem("regDate")}`;
 
-    nameInput.value = name;
-    regDateEl.textContent = `Рӯзи бақайдгирӣ: ${regDate}`;
-
-    nameInput.addEventListener("input", () => {
-      localStorage.setItem("clientName", nameInput.value);
-    });
-
-    function render() {
-      historyEl.innerHTML = "";
-      let balance = 0;
-
-      operations.forEach(op => {
-        const li = document.createElement("li");
-        li.textContent = `${op.amount > 0 ? "+" : ""}${op.amount} € ${op.date} `;
-        li.className = op.amount > 0 ? "positive" : "negative";
-        historyEl.appendChild(li);
-        balance += op.amount;
-      });
-
-      balanceEl.textContent = `Тавозун: ${balance} сомонӣ`;
-      balanceEl.style.color = balance < 0 ? "#ff4d4d" : "#2ecc71";
-    }
-
-    addBtn.onclick = () => {
-      const value = parseFloat(amountInput.value);
-      if (isNaN(value) || value === 0) return;
-
-      const operation = {
-        amount: isDebt ? -Math.abs(value) : Math.abs(value),
-        date: new Date().toLocaleString("ru-RU")
-      };
-
-      operations.push(operation);
+    function saveData() {
       localStorage.setItem("operations", JSON.stringify(operations));
-      amountInput.value = "";
+      localStorage.setItem("clients", JSON.stringify(clients));
+      localStorage.setItem("currentClient", currentClient);
+    }
+
+    function renderClients() {
+      clientSelect.innerHTML = "";
+      clients.forEach(client => {
+        const option = document.createElement("option");
+        option.value = client;
+        option.textContent = client;
+        if (client === currentClient) option.selected = true;
+        clientSelect.appendChild(option);
+      });
+    }
+
+    function addClient() {
+      const newName = newClientInput.value.trim();
+      if (newName && !clients.includes(newName)) {
+        clients.push(newName);
+        currentClient = newName;
+        newClientInput.value = "";
+        renderClients();
+        saveData();
+        render();
+      }
+    }
+
+    clientSelect.onchange = () => {
+      currentClient = clientSelect.value;
+      saveData();
       render();
     };
 
@@ -186,10 +208,79 @@ input{
       debtBtn.classList.remove("active");
     };
 
+    addBtn.onclick = () => {
+      const value = parseFloat(amountInput.value);
+      if (isNaN(value) || value === 0) return;
+      const comment = commentInput.value.trim();
+      const operation = {
+        amount: isDebt ? -Math.abs(value) : Math.abs(value),
+        date: new Date().toLocaleString("ru-RU"),
+        client: currentClient,
+        comment
+      };
+      operations.push(operation);
+      amountInput.value = "";
+      commentInput.value = "";
+      saveData();
+      render();
+    };
+
+    document.getElementById("clearHistoryBtn").onclick = () => {
+      operations = operations.filter(op => op.client !== currentClient);
+      saveData();
+      render();
+    };
+
+    document.getElementById("clearBalanceBtn").onclick = () => {
+      operations = operations.map(op =>
+        op.client === currentClient ? { ...op, amount: 0 } : op
+      );
+      saveData();
+      render();
+    };
+
+    document.getElementById("exportBtn").onclick = () => {
+      const rows = ["Дата, Сумма, Комментарий"];
+      operations.filter(op => op.client === currentClient).forEach(op => {
+        rows.push(`${op.date},${op.amount},${op.comment || ""}`);
+      });
+      const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${currentClient}_история.csv`;
+      a.click();
+    };
+
+    function render() {
+      historyEl.innerHTML = "";
+      let balance = 0;
+      operations.filter(op => op.client === currentClient).forEach((op, index) => {
+        const li = document.createElement("li");
+        const span = document.createElement("span");
+        span.textContent = `${op.amount > 0 ? "+" : ""}${op.amount} € — ${op.comment || ""} (${op.date})`;
+        span.className = op.amount > 0 ? "positive" : "negative";
+        const controls = document.createElement("div");
+        controls.className = "op-controls";
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "✕";
+        delBtn.onclick = () => {
+          operations.splice(index, 1);
+          saveData();
+          render();
+        };
+        controls.appendChild(delBtn);
+        li.appendChild(span);
+        li.appendChild(controls);
+        historyEl.appendChild(li);
+        balance += op.amount;
+      });
+      balanceEl.textContent = `Тавозун: ${balance} сомонӣ`;
+      balanceEl.style.color = balance < 0 ? "#ff4d4d" : "#2ecc71";
+    }
+
+    renderClients();
     render();
-  
   </script>
-  <script src="app.js"></script>
-   <script src="service-worker.js"></script>
 </body>
 </html>
