@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+   <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8" />
+    <link rel="website icon" type="png" href="loan.png">
+    <link rel="icon" type="png" href="loan.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Хисобкунак</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      padding: 2px;
+      text-align: left;
+    }
+
+    .container {
+      max-width: 550px;
+      margin: ;
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .balance {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #ff4d4d;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .tabs button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 20px;
+      background: #444;
+      color: white;
+      cursor: pointer;
+    }
+
+    .tabs .active {
+      background: #25c710;
+    }
+
+    input, button {
+      width: 90%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 20px;
+    }
+input{
+  height: 20px;
+}
+  
+    button#addBtn {
+      background: #2ecc71;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  #addBtn {
+    width: 95%;
+      background: #2ecc71;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    ul#history {
+      list-style: none;
+      padding: 0;
+    }
+
+    ul#history li {
+      padding: 8px;
+      margin: 5px 0;
+      background: #333;
+      border-radius: 5px;
+    }
+
+    .positive {
+      color: #2ecc71;
+    }
+
+    .negative {
+      color: #e74c3c;
+    }
+  #debtBtn.active{
+    background-color: red;
+  }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <input type="text" id="nameInput" placeholder="Имя (например: Бижутерия)" />
+    <p class="balance" id="balance">Баланс: 0 сомонӣ</p>
+    <p id="regDate">Дата регистрации: </p>
+
+    <div class="tabs">
+      <button id="debtBtn" class="active">Расход</button>
+      <button id="loanBtn">Доход</button>
+    </div>
+
+    <input type="number" id="amount" placeholder="Сумма €" />
+    <button id="addBtn">Сабт кардан</button>
+
+    <h3>Таърих:</h3>
+    <ul id="history"></ul>
+  </div>
+
+  <script>
+    let isDebt = true;
+    const debtBtn = document.getElementById("debtBtn");
+    const loanBtn = document.getElementById("loanBtn");
+    const amountInput = document.getElementById("amount");
+    const addBtn = document.getElementById("addBtn");
+    const balanceEl = document.getElementById("balance");
+    const historyEl = document.getElementById("history");
+    const nameInput = document.getElementById("nameInput");
+    const regDateEl = document.getElementById("regDate");
+
+    let operations = JSON.parse(localStorage.getItem("operations")) || [];
+    let name = localStorage.getItem("clientName") || "Бижутерия";
+    let regDate = localStorage.getItem("regDate");
+
+    if (!regDate) {
+      const now = new Date();
+      regDate = now.toLocaleDateString("ru-RU") + " " + now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+      localStorage.setItem("regDate", regDate);
+    }
+
+    nameInput.value = name;
+    regDateEl.textContent = `Рӯзи бақайдгирӣ: ${regDate}`;
+
+    nameInput.addEventListener("input", () => {
+      localStorage.setItem("clientName", nameInput.value);
+    });
+
+    function render() {
+      historyEl.innerHTML = "";
+      let balance = 0;
+
+      operations.forEach(op => {
+        const li = document.createElement("li");
+        li.textContent = `${op.amount > 0 ? "+" : ""}${op.amount} € ${op.date} `;
+        li.className = op.amount > 0 ? "positive" : "negative";
+        historyEl.appendChild(li);
+        balance += op.amount;
+      });
+
+      balanceEl.textContent = `Тавозун: ${balance} сомонӣ`;
+      balanceEl.style.color = balance < 0 ? "#ff4d4d" : "#2ecc71";
+    }
+
+    addBtn.onclick = () => {
+      const value = parseFloat(amountInput.value);
+      if (isNaN(value) || value === 0) return;
+
+      const operation = {
+        amount: isDebt ? -Math.abs(value) : Math.abs(value),
+        date: new Date().toLocaleString("ru-RU")
+      };
+
+      operations.push(operation);
+      localStorage.setItem("operations", JSON.stringify(operations));
+      amountInput.value = "";
+      render();
+    };
+
+    debtBtn.onclick = () => {
+      isDebt = true;
+      debtBtn.classList.add("active");
+      loanBtn.classList.remove("active");
+    };
+
+    loanBtn.onclick = () => {
+      isDebt = false;
+      loanBtn.classList.add("active");
+      debtBtn.classList.remove("active");
+    };
+
+    render();
+  
+  </script>
+  <script src="app.js"></script>
+   <script src="service-worker.js"></script>
+</body>
+</html>
