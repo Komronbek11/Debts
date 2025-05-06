@@ -1,7 +1,7 @@
 {
-    "name": "Хисобкунак",
-    "short_name": "Хисобкунак",
-    "description": "Хисобкунак",
+    "name": "Ҳисобдорӣ шахсӣ",
+    "short_name": "Ҳисобдорӣ шахсӣ",
+    "description": "Ҳисобдорӣ шахсӣ",
     "start_url": ".",
     "display": "standalone",
     "background_color": "black",
